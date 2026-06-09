@@ -9,7 +9,7 @@ Automatically converts horizontal videos into vertical format for Shorts, Reels,
 ### Quick Start
 
 ```bash
-git clone [https://github.com/kamilstanuch/AutoCrop-Vertical](https://github.com/ScottinDC/vertical-crop).git
+git clone https://github.com/ScottinDC/vertical-crop.git
 cd AutoCrop-Vertical
 python3 -m venv .venv
 source .venv/bin/activate
