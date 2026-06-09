@@ -1,10 +1,8 @@
-# AutoCrop-Vertical: Smart Video Cropper for Social Media
+# Vertical Cop: Smart Video Cropping for Vertical
 
 ![Demo of AutoCrop-Vertical](https://github.com/kamilstanuch/Autocrop-vertical/blob/main/churchil_queen_vertical_short.gif?raw=true)
 
-Automatically converts horizontal videos into vertical format for TikTok, Instagram Reels, and YouTube Shorts.
-
-Instead of a static center crop, the script analyzes each scene using AI (YOLOv8), detects people, and decides whether to crop tightly on the subjects or letterbox to preserve the full shot.
+Automatically converts horizontal videos into vertical format for Shorts, Reels, and TikTok. Instead of a static center crop, the script analyzes each scene using AI (YOLOv8), detects people, and decides whether to crop tightly on the subjects or letterbox to preserve the full shot.
 
 ---
 
@@ -50,7 +48,6 @@ python3 main.py -i video.mp4 -o vertical.mp4 --encoder hw
 # Maximum accuracy scene detection (slower)
 python3 main.py -i video.mp4 -o vertical.mp4 --frame-skip 0
 ```
-
 ---
 
 ### All Flags
@@ -175,7 +172,7 @@ This script is built on a pipeline that uses specialized libraries for each step
     *   `tqdm`: For clean and informative progress bars in the console.
 
 *   **Processing Pipeline:**
-    1.  **(Pre-processing)** If the source is VFR, it is normalized to constant frame rate.
+    1.  **(Pre-processing)** If the source is VFR, it is normalized to a constant frame rate.
     2.  `PySceneDetect` scans the video and returns a list of scene timestamps.
     3.  For each scene, `OpenCV` extracts a sample frame and `YOLOv8` detects people in it.
     4.  A set of rules determines the strategy (`TRACK` or `LETTERBOX`) for each scene based on the number and position of detected people.
@@ -188,13 +185,13 @@ This script is built on a pipeline that uses specialized libraries for each step
 
 #### v1.4.1 (2026-02-15) — Cropping Accuracy Fix
 
-*   **Fixed incorrect crop/letterbox decisions near scene boundaries.** The v1.3 `filter_complex` pipeline used seconds-based `trim` filters, which caused floating-point misalignment with the frame-based scene boundaries from PySceneDetect. This led to frames at scene transitions receiving the wrong strategy (e.g., a properly tracked person switching to letterbox mid-scene, or a group shot being cropped instead of letterboxed). Restored the original frame-by-frame processing pipeline which uses exact frame numbers for scene boundary matching, guaranteeing frame-accurate results.
+*   **Fixed incorrect crop/letterbox decisions near scene boundaries.** The v1.3 'filter_complex' pipeline used seconds-based 'trim' filters, which caused floating-point misalignment with the frame-based scene boundaries from PySceneDetect. This led to frames at scene transitions receiving the wrong strategy (e.g., a properly tracked person switching to letterbox mid-scene, or a group shot being cropped instead of letterboxed). Restored the original frame-by-frame processing pipeline, which uses exact frame numbers for scene boundary matching, guaranteeing frame-accurate results.
 
 #### v1.4.0 (2026-02-15) — Hardware Encoding & Scene Detection Tuning
 
 **New Features:**
 
-*   **Hardware encoder support (`--encoder`).** New flag with three modes: `auto` (libx264, default for best quality/compatibility), `hw` (auto-detect VideoToolbox on macOS or NVENC on NVIDIA), or an explicit encoder name. Quality presets (`--quality`) map automatically per encoder type.
+*   **Hardware encoder support (`--encoder`).** New flag with three modes: 'auto' (libx264, default for best quality/compatibility), `hw` (auto-detect VideoToolbox on macOS or NVENC on NVIDIA), or an explicit encoder name. Quality presets (`--quality`) map automatically per encoder type.
 *   **Configurable scene detection (`--frame-skip`, `--downscale`).** Power users can tune the speed/accuracy trade-off. Default `--frame-skip 0` processes every frame for maximum accuracy; increase for faster detection on longer videos.
 
 #### v1.3.0 (2026-02-15) — Configurable Output & Quality Presets
@@ -212,16 +209,16 @@ This script is built on a pipeline that uses specialized libraries for each step
 **Bug Fixes:**
 
 *   **Fixed audio/video desynchronization.** This was caused by two separate issues:
-    *   The frame rate was being read from PySceneDetect while frames were read by OpenCV. A mismatch between the two (e.g. 29.97 vs 30.0) caused the encoded video duration to drift from the audio. FPS is now read from OpenCV (the same backend that reads the frames) with explicit `-vsync cfr` enforcement.
-    *   Many source files (especially YouTube downloads) have a non-zero `start_time` on the video stream (e.g. audio at 0.0s, video at 1.8s). The script now detects this offset via `ffprobe` and trims the extracted audio to match, so the two streams stay aligned.
-*   **Fixed crash on videos without an audio stream.** The script now detects whether audio exists using `ffprobe` and skips the audio extraction/merge steps gracefully.
+    *   The frame rate was being read from PySceneDetect while frames were read by OpenCV. A mismatch between the two (e.g., 29.97 vs 30.0) caused the encoded video duration to drift out of sync with the audio. FPS is now read from OpenCV (the same backend that reads the frames) with explicit `-vsync cfr` enforcement.
+    *   Many source files (especially YouTube downloads) have a non-zero `start_time` on the video stream (e.g., audio at 0.0s, video at 1.8s). The script now detects this offset using `ffprobe` and trims the extracted audio to match it, so the two streams stay aligned.
+*   **Fixed crash on videos without an audio stream.** The script now detects whether audio is present using `ffprobe` and gracefully skips the audio extraction/merge steps.
 *   **Fixed hardcoded `.aac` temp audio file.** The temp audio container is now `.mkv`, which accepts any audio codec. Previously, source files with non-AAC audio (MP3, Opus, AC3, etc.) could fail or produce corrupt output.
 *   **Fixed crash when output path has no file extension.** The script now auto-appends `.mp4` if no extension is provided.
 *   **Fixed orphaned temp files on failure.** Temporary files are now cleaned up on all exit paths, not just on success.
 
 **Improvements:**
 
-*   **Variable frame rate (VFR) handling.** Phone-recorded videos often use VFR, which caused frame timing drift. The script now detects VFR sources via `ffprobe` and normalizes them to constant frame rate before processing.
+*   **Variable frame rate (VFR) handling.** Phone-recorded videos often use VFR, which causes frame timing drift. The script now detects VFR sources via `ffprobe` and normalizes them to a constant frame rate before processing.
 *   **Corrupt frame resilience.** If a frame fails to process (bad crop, corrupt data), it is duplicated from the previous good frame instead of being dropped. This preserves the total frame count and prevents audio drift.
 *   **Lazy model loading.** YOLO and Haar cascade models are now loaded on first use instead of at import time. Heavy library imports (`torch`, `ultralytics`, `cv2`, etc.) are deferred until after argument parsing, so `--help` is instant.
 *   **Pinned dependency versions.** `requirements.txt` now specifies compatible version ranges to prevent breakage from upstream changes.
